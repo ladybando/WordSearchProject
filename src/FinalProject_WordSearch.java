@@ -5,7 +5,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
+
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -24,7 +26,9 @@ public class FinalProject_WordSearch extends Application {
         stage.show();
     }
 
-    public static void main(String[] args) {launch(args);}
+    public static void main(String[] args) {
+        launch(args);
+    }
 
     class WordSearch extends BorderPane {
         public String wordSelected;
@@ -33,7 +37,7 @@ public class FinalProject_WordSearch extends Application {
         StackPane[][] stackPanes;
         Button enter = new Button("Enter");
 
-        public void displayBoard(){
+        public void displayBoard() {
 
         }
 
@@ -47,10 +51,9 @@ public class FinalProject_WordSearch extends Application {
 
     }
 
-    class GameBoard extends BorderPane{
+    class GameBoard extends BorderPane {
         //sets the number of wins to write to GameStats
-        //sets orientation of board to ensure board stays in bounds
-        private int wins, row, column, orientation;
+        private int wins, row, column;
         //tracks letter location on board
         int charLocation;
         //actual game board
@@ -61,70 +64,47 @@ public class FinalProject_WordSearch extends Application {
         private final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         GameDictionary dictionary = new GameDictionary();
         ArrayList<String> words = dictionary.getDictionaryList();
-        //starts the game and builds the board fully
-        String[][] wordBoard;
         StackPane[][] stackPanes;
         GridPane grid;
         Button enter = new Button("Enter");
-        public void startGame(){
+
+        public void startGame() {
             buildGameBoard();
-            fillTheBlanks();
+            //fillTheBlanks(row, column);
         }
+
         public void buildGameBoard() {
             //Random value generator
             Random rand = new Random();
-            boolean isAdded;
             HBox hBox = new HBox();
             hBox.setAlignment(Pos.CENTER);
             hBox.setPadding(new Insets(5));
             setTop(hBox);
 
-            for (int i = 0; i < words.size(); i++) {
-                do {
-                    isAdded = false;
-                    grid = new GridPane();
-                    //set orientation bound to 4 for the orientation types
-                    orientation = rand.nextInt(4);
-                    row = rand.nextInt(boardSize);
-                    column = rand.nextInt(boardSize);
-                    charLocation = i;
-                    stackPanes = new StackPane[row][column];
-                    for(int j = 0; j < dictionary.getValueAt(i).length(); j++) {
-                        switch (orientation) {
-                            //vertical up orientation
-                            case 0:
-                                //adds letters to the row
-
-                                 dictionary.getValueAt(i).charAt(charLocation);
-                                break;
-                            //horizontal right orientation
-                            case 1:
-                                gameBoard[row][column + charLocation] = dictionary.getValueAt(i).charAt(charLocation);
-                                break;
-                            //vertical down orientation
-                            case 2:
-                                gameBoard[row + charLocation][column] = dictionary.getValueAt(i).charAt(charLocation);
-                                break;
-                            //horizontal left orientation
-                            case 3:
-                                gameBoard[row][column - charLocation] = dictionary.getValueAt(i).charAt(charLocation);
-                                break;
-                        }
-
-                        isAdded = true;
-                    }
-                } while (!isAdded);
+            grid = new GridPane();
+            row = rand.nextInt(boardSize);
+            column = rand.nextInt(boardSize);
+            stackPanes = new StackPane[boardSize][boardSize];
+            for (int i = 0; i < gameBoard.length; i++) {
+                   for (int j = 0; j < gameBoard[i].length; j++) {
+                    gameBoard[i][j] = dictionary.getValueAt(i).charAt(charLocation);
+                    Label label = new Label(" " + gameBoard[i][j] + " ");
+                    Label alphabetLabel = fillTheBlanks(i, j);
+                    label.setWrapText(false);
+                    label.setFont(Font.font(20.0));
+                    stackPanes[i][j] = new StackPane(label, alphabetLabel);
+                    stackPanes[i][j].setStyle("-fx-border-color: black;" +
+                            "-fx-border-radius: 3");
+                    grid.add(stackPanes[i][j], j, i);
+                }
             }
-            Label label = new Label(" " + gameBoard[row][column] + " ");
-            stackPanes[row][column] = new StackPane(label);
-            stackPanes[row][column].setStyle("-fx-border-color: black;" +
-                    "-fx-border-radius: 3");
-            grid.add(stackPanes[row][column],column, row);
-            grid.setHgap(0.5);
-            grid.setVgap(0.5);
+
+            grid.setHgap(0.10);
+            grid.setVgap(0.10);
             grid.setAlignment(Pos.CENTER);
             grid.setPadding(new Insets(10));
             grid.setStyle("-fx-border-color: black");
+
             setMargin(grid, new Insets(20));
 
             setCenter(grid);
@@ -133,16 +113,19 @@ public class FinalProject_WordSearch extends Application {
         /**
          * Fill remaining blank spaces with random letters
          */
-        public void fillTheBlanks() {
+        public Label fillTheBlanks(int row, int column) {
             Random rand = new Random();
-            for (int row = 0; row < boardSize; row++) {
-                for (int column = 0; column < boardSize; column++) {
+            Label label = new Label();
+            for (int i = 0; i < boardSize; i++) {
+                for (int j = 0; j < boardSize; j++) {
                     if (gameBoard[row][column] == ' ') {
                         //fills spaces without words with a random letter
                         gameBoard[row][column] = ALPHABET.charAt(rand.nextInt(ALPHABET.length()));
+                        label = new Label(" " + gameBoard[row][column] + " ");
                     }
                 }
             }
+            return label;
         }
 
         public boolean checkContains(String word) {
@@ -174,7 +157,7 @@ public class FinalProject_WordSearch extends Application {
             return dictionaryList.contains(word);
         }
 
-        public String getValueAt(int position){
+        public String getValueAt(int position) {
             return dictionaryList.get(position);
         }
 
@@ -206,10 +189,7 @@ public class FinalProject_WordSearch extends Application {
                         words += characters;
                     }
                 }
-                if (words.length() > 0) {
-                    // appending last line of strings to list
-                    dictionaryList.add(words);
-                }
+                dictionaryList.add(words);
             }
             return dictionaryList;
         }
